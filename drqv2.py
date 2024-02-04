@@ -10,6 +10,8 @@ import torch.nn.functional as F
 
 import utils
 
+from embedding import EmbeddingNet
+
 
 class RandomShiftsAug(nn.Module):
     def __init__(self, pad):
@@ -45,26 +47,26 @@ class RandomShiftsAug(nn.Module):
                              align_corners=False)
 
 
-class Encoder(nn.Module):
-    def __init__(self, obs_shape):
-        super().__init__()
+# class Encoder(nn.Module):
+#     def __init__(self, obs_shape):
+#         super().__init__()
 
-        assert len(obs_shape) == 3
-        self.repr_dim = 32 * 35 * 35
+#         assert len(obs_shape) == 3
+#         self.repr_dim = 32 * 35 * 35
 
-        self.convnet = nn.Sequential(nn.Conv2d(obs_shape[0], 32, 3, stride=2),
-                                     nn.ReLU(), nn.Conv2d(32, 32, 3, stride=1),
-                                     nn.ReLU(), nn.Conv2d(32, 32, 3, stride=1),
-                                     nn.ReLU(), nn.Conv2d(32, 32, 3, stride=1),
-                                     nn.ReLU())
+#         self.convnet = nn.Sequential(nn.Conv2d(obs_shape[0], 32, 3, stride=2),
+#                                      nn.ReLU(), nn.Conv2d(32, 32, 3, stride=1),
+#                                      nn.ReLU(), nn.Conv2d(32, 32, 3, stride=1),
+#                                      nn.ReLU(), nn.Conv2d(32, 32, 3, stride=1),
+#                                      nn.ReLU())
 
-        self.apply(utils.weight_init)
+#         self.apply(utils.weight_init)
 
-    def forward(self, obs):
-        obs = obs / 255.0 - 0.5
-        h = self.convnet(obs)
-        h = h.view(h.shape[0], -1)
-        return h
+#     def forward(self, obs):
+#         obs = obs / 255.0 - 0.5
+#         h = self.convnet(obs)
+#         h = h.view(h.shape[0], -1)
+#         return h
 
 
 class Actor(nn.Module):
@@ -134,18 +136,21 @@ class DrQV2Agent:
         self.stddev_clip = stddev_clip
 
         # models
-        self.encoder = Encoder(obs_shape).to(device)
-        self.actor = Actor(self.encoder.repr_dim, action_shape, feature_dim,
+        self.encoder = EmbeddingNet("moco_aug").to(device)
+        def get_output_shape(model, image_dim):
+            return model(torch.rand(*(image_dim))).data.shape[1]
+        rep_dim =  get_output_shape(self.encoder, (3, 84, 84, 3))
+        self.actor = Actor(repr_dim, action_shape, feature_dim,
                            hidden_dim).to(device)
 
-        self.critic = Critic(self.encoder.repr_dim, action_shape, feature_dim,
+        self.critic = Critic(repr_dim, action_shape, feature_dim,
                              hidden_dim).to(device)
-        self.critic_target = Critic(self.encoder.repr_dim, action_shape,
+        self.critic_target = Critic(repr_dim, action_shape,
                                     feature_dim, hidden_dim).to(device)
         self.critic_target.load_state_dict(self.critic.state_dict())
 
         # optimizers
-        self.encoder_opt = torch.optim.Adam(self.encoder.parameters(), lr=lr)
+        # self.encoder_opt = torch.optim.Adam(self.encoder.parameters(), lr=lr)
         self.actor_opt = torch.optim.Adam(self.actor.parameters(), lr=lr)
         self.critic_opt = torch.optim.Adam(self.critic.parameters(), lr=lr)
 
@@ -157,13 +162,14 @@ class DrQV2Agent:
 
     def train(self, training=True):
         self.training = training
-        self.encoder.train(training)
+        # self.encoder.train(training)
         self.actor.train(training)
         self.critic.train(training)
 
     def act(self, obs, step, eval_mode):
         obs = torch.as_tensor(obs, device=self.device)
-        obs = self.encoder(obs.unsqueeze(0))
+        with torch.no_grad():
+            obs = self.encoder(obs.unsqueeze(0))
         stddev = utils.schedule(self.stddev_schedule, step)
         dist = self.actor(obs, stddev)
         if eval_mode:
@@ -199,7 +205,7 @@ class DrQV2Agent:
         self.critic_opt.zero_grad(set_to_none=True)
         critic_loss.backward()
         self.critic_opt.step()
-        self.encoder_opt.step()
+        # self.encoder_opt.step()
 
         return metrics
 
@@ -241,7 +247,8 @@ class DrQV2Agent:
         obs = self.aug(obs.float())
         next_obs = self.aug(next_obs.float())
         # encode
-        obs = self.encoder(obs)
+        with torch.no_grad():
+            obs = self.encoder(obs)
         with torch.no_grad():
             next_obs = self.encoder(next_obs)
 
