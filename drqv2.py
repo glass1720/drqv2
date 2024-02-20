@@ -180,10 +180,11 @@ class DrQV2Agent:
         if not self.use_encoder:
             with torch.no_grad():
                 print(f"in obs shape {obs.shape}")
-                obs_chunks = torch.chunk(obs, 3, dim=0)
-                obs_stacked = torch.stack(obs_chunks)
-                print(f"obs shape post split {obs_stacked.shape}")
-                obs = self.encoder(obs_stacked.unsqueeze(0))
+                obs = obs.permute(1, 2, 0)
+                obs = torch.chunk(obs, 3, dim=-1)
+                obs = torch.stack(obs)
+                print(f"obs shape post split {obs.shape}")
+                obs = self.encoder(obs.unsqueeze(0))
                 print("encoder output shape", obs.shape)
         else:
             obs = self.encoder(obs.unsqueeze(0))
