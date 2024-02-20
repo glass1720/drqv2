@@ -251,7 +251,7 @@ class EmbeddingNet(nn.Module):
         else:
             with torch.no_grad():
                 out = self._forward(observation)
-                return out.view(-1, self.out_size).squeeze().cpu().numpy()
+                return out.view(-1, self.out_size).squeeze()
 
 
 # ==============================================================================
