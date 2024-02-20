@@ -179,11 +179,11 @@ class DrQV2Agent:
         obs = torch.as_tensor(obs, device=self.device)
         if not self.use_encoder:
             with torch.no_grad():
-                print(obs.shape)
+                print(f"in obs shape {obs.shape}")
                 obs = np.stack(np.split(obs, 3, axis=0))
-                print(obs.shape)
+                print(f"obs shape post split {obs.shape}")
                 obs = self.encoder(obs.unsqueeze(0))
-                print(obs.shape)
+                print("encoder output shape", obs.shape)
         else:
             obs = self.encoder(obs.unsqueeze(0))
         stddev = utils.schedule(self.stddev_schedule, step)
