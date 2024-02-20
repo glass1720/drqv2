@@ -179,6 +179,7 @@ class DrQV2Agent:
         obs = torch.as_tensor(obs, device=self.device)
         if not self.use_encoder:
             with torch.no_grad():
+                print(obs.shape)
                 obs = self.encoder(obs.unsqueeze(0))
         else:
             obs = self.encoder(obs.unsqueeze(0))
