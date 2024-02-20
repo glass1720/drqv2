@@ -277,7 +277,7 @@ class EmbeddingWrapper(gym.ObservationWrapper):
         assert in_channels % 3 == 0,  \
                 """ Only RGB images are supported.
                     Be sure that observation shape is (H, W, n * 3),
-                    where n is the number of frames per observation. """
+                    where n is the number of frames per observation."""
 
         self.in_channels = 3
         self.n_frames = in_channels // 3
