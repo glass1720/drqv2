@@ -180,7 +180,10 @@ class DrQV2Agent:
         if not self.use_encoder:
             with torch.no_grad():
                 print(obs.shape)
+                obs = np.stack(np.split(obs, 3, axis=0))
+                print(obs.shape)
                 obs = self.encoder(obs.unsqueeze(0))
+                print(obs.shape)
         else:
             obs = self.encoder(obs.unsqueeze(0))
         stddev = utils.schedule(self.stddev_schedule, step)
