@@ -179,17 +179,14 @@ class DrQV2Agent:
         obs = torch.as_tensor(obs, device=self.device)
         if not self.use_encoder:
             with torch.no_grad():
-                print(f"in obs shape {obs.shape}")
                 obs = obs.permute(1, 2, 0)
                 obs = torch.chunk(obs, 3, dim=-1)
                 obs = torch.stack(obs)
-                print(f"obs shape post split {obs.shape}")
                 obs = self.encoder(obs)
-                print("encoder output shape", obs.shape)
-                print(type(obs))
         else:
             obs = self.encoder(obs.unsqueeze(0))
         stddev = utils.schedule(self.stddev_schedule, step)
+        print(obs.shape)
         dist = self.actor(obs, stddev)
         if eval_mode:
             action = dist.mean
