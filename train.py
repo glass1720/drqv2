@@ -127,9 +127,10 @@ class Workspace:
                                        self.cfg.action_repeat)
         seed_until_step = utils.Until(self.cfg.num_seed_frames,
                                       self.cfg.action_repeat)
-        # eval_every_step = utils.Every(self.cfg.eval_every_frames,
-                                    #   self.cfg.action_repeat)
-        eval_every_step = 1000000000
+        eval_every_step = utils.Every(1000000000,
+            # self.cfg.eval_every_frames,
+                                      self.cfg.action_repeat)
+        # eval_every_step = 1000000000
 
         episode_step, episode_reward = 0, 0
         time_step = self.train_env.reset()
