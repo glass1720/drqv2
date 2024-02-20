@@ -101,6 +101,8 @@ def _get_embedding(embedding_name='random', in_channels=3, pretrained=True, trai
     elif embedding_name == 'demy':
         model = moco_conv5(checkpoint_path='demy.pth') 
     # MOCO
+    elif embedding_name == 'moco':
+        model = moco_conv5(checkpoint_path='moco_v2_800ep_pretrain.pth.tar')
     elif embedding_name == 'moco_aug':
         model = moco_conv5(checkpoint_path='moco_aug.pth.tar')
     elif embedding_name == 'moco_aug_habitat':

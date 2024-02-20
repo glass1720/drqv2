@@ -140,7 +140,7 @@ class DrQV2Agent:
         # models
         if use_encoder:
             self.encoder = Encoder(obs_shape).to(device)
-        self.encoder = EmbeddingNet("moco_aug").to(device)
+        self.encoder = EmbeddingNet("moco").to(device)
 
         # send a mock image to the encoder to get the representation shape
         def get_output_shape(model, image_dim):
