@@ -184,7 +184,7 @@ class DrQV2Agent:
                 obs = torch.chunk(obs, 3, dim=-1)
                 obs = torch.stack(obs)
                 print(f"obs shape post split {obs.shape}")
-                obs = self.encoder(obs.unsqueeze(0))
+                obs = self.encoder(obs)
                 print("encoder output shape", obs.shape)
         else:
             obs = self.encoder(obs.unsqueeze(0))
