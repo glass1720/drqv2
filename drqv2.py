@@ -186,6 +186,7 @@ class DrQV2Agent:
                 print(f"obs shape post split {obs.shape}")
                 obs = self.encoder(obs)
                 print("encoder output shape", obs.shape)
+                print(type(obs))
         else:
             obs = self.encoder(obs.unsqueeze(0))
         stddev = utils.schedule(self.stddev_schedule, step)
